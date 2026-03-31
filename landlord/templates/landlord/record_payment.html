@@ -1,0 +1,514 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Record Payment{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-credit-card me-2 text-primary"></i>Record Payment
+            </h1>
+            <p class="text-muted mb-0">Add a new payment record for the tenant</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>
+                        Payment Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="tenant" value="{{ request.GET.tenant_id }}">
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-4">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <!-- Amount -->
+                                <div class="mb-4">
+                                    <label for="amount" class="form-label small text-muted mb-1">
+                                        <i class="fas fa-money-bill-wave me-1"></i>
+                                        Amount (TZS) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-shilling-sign text-muted"></i>
+                                        </span>
+                                        <input type="number" 
+                                               class="form-control form-control-lg {% if form.amount.errors %}is-invalid{% endif %}" 
+                                               id="amount" 
+                                               name="amount" 
+                                               step="0.01" 
+                                               min="0" 
+                                               value="{{ form.amount.value|default:'' }}" 
+                                               required
+                                               placeholder="0.00">
+                                        {% if form.amount.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.amount.errors.0 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="invalid-feedback">
+                                                Please enter a valid amount.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Payment Date -->
+                                <div class="mb-4">
+                                    <label for="payment_date" class="form-label small text-muted mb-1">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        Payment Date <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="far fa-calendar text-muted"></i>
+                                        </span>
+                                        <input type="date" 
+                                               class="form-control form-control-lg {% if form.payment_date.errors %}is-invalid{% endif %}" 
+                                               id="payment_date" 
+                                               name="payment_date" 
+                                               value="{{ form.payment_date.value|default:'' }}" 
+                                               required>
+                                        {% if form.payment_date.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.payment_date.errors.0 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="invalid-feedback">
+                                                Please select a payment date.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <div class="mb-4">
+                                    <label for="payment_method" class="form-label small text-muted mb-1">
+                                        <i class="fas fa-credit-card me-1"></i>
+                                        Payment Method <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-wallet text-muted"></i>
+                                        </span>
+                                        <select class="form-select form-select-lg {% if form.payment_method.errors %}is-invalid{% endif %}" 
+                                                id="payment_method" 
+                                                name="payment_method" 
+                                                required>
+                                            <option value="" disabled selected>Select payment method</option>
+                                            <option value="MPESA" {% if form.payment_method.value == 'MPESA' %}selected{% endif %}>
+                                                <i class="fas fa-mobile-alt me-2"></i> M-Pesa
+                                            </option>
+                                            <option value="BANK_TRANSFER" {% if form.payment_method.value == 'BANK_TRANSFER' %}selected{% endif %}>
+                                                <i class="fas fa-university me-2"></i> Bank Transfer
+                                            </option>
+                                            <option value="CASH" {% if form.payment_method.value == 'CASH' %}selected{% endif %}>
+                                                <i class="fas fa-money-bill-wave me-2"></i> Cash
+                                            </option>
+                                            <option value="CHEQUE" {% if form.payment_method.value == 'CHEQUE' %}selected{% endif %}>
+                                                <i class="fas fa-file-invoice me-2"></i> Cheque
+                                            </option>
+                                            <option value="OTHER" {% if form.payment_method.value == 'OTHER' %}selected{% endif %}>
+                                                <i class="fas fa-ellipsis-h me-2"></i> Other
+                                            </option>
+                                        </select>
+                                        {% if form.payment_method.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.payment_method.errors.0 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="invalid-feedback">
+                                                Please select a payment method.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <!-- Transaction ID -->
+                                <div class="mb-4">
+                                    <label for="transaction_id" class="form-label small text-muted mb-1">
+                                        <i class="fas fa-receipt me-1"></i>
+                                        Transaction/Reference
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-hashtag text-muted"></i>
+                                        </span>
+                                        <input type="text" 
+                                               class="form-control form-control-lg {% if form.transaction_id.errors %}is-invalid{% endif %}" 
+                                               id="transaction_id" 
+                                               name="transaction_id" 
+                                               value="{{ form.transaction_id.value|default:'' }}"
+                                               placeholder="e.g. MPESA12345">
+                                        {% if form.transaction_id.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.transaction_id.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="form-text text-muted">Leave blank for cash payments</small>
+                                </div>
+
+                                <!-- Number of Months -->
+                                <div class="mb-4">
+                                    <label for="months" class="form-label small text-muted mb-1">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Number of Months <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-hashtag text-muted"></i>
+                                        </span>
+                                        <input type="number" 
+                                               class="form-control form-control-lg" 
+                                               id="months" 
+                                               name="months" 
+                                               min="1" 
+                                               max="24" 
+                                               value="1"
+                                               required>
+                                    </div>
+                                    <small class="form-text text-muted">Number of months being paid for</small>
+                                </div>
+
+                                <!-- Payment Period -->
+                                <div class="mb-4">
+                                    <label for="payment_period" class="form-label small text-muted mb-1">
+                                        <i class="far fa-calendar-check me-1"></i>
+                                        Payment Period <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="far fa-calendar text-muted"></i>
+                                        </span>
+                                        <select class="form-select form-select-lg {% if form.payment_period.errors %}is-invalid{% endif %}" 
+                                                id="payment_period" 
+                                                name="payment_period" 
+                                                required>
+                                            <option value="" disabled selected>Select payment period</option>
+                                            <option value="JAN" {% if form.payment_period.value == 'JAN' %}selected{% endif %}>January</option>
+                                            <option value="FEB" {% if form.payment_period.value == 'FEB' %}selected{% endif %}>February</option>
+                                            <option value="MAR" {% if form.payment_period.value == 'MAR' %}selected{% endif %}>March</option>
+                                            <option value="APR" {% if form.payment_period.value == 'APR' %}selected{% endif %}>April</option>
+                                            <option value="MAY" {% if form.payment_period.value == 'MAY' %}selected{% endif %}>May</option>
+                                            <option value="JUN" {% if form.payment_period.value == 'JUN' %}selected{% endif %}>June</option>
+                                            <option value="JUL" {% if form.payment_period.value == 'JUL' %}selected{% endif %}>July</option>
+                                            <option value="AUG" {% if form.payment_period.value == 'AUG' %}selected{% endif %}>August</option>
+                                            <option value="SEP" {% if form.payment_period.value == 'SEP' %}selected{% endif %}>September</option>
+                                            <option value="OCT" {% if form.payment_period.value == 'OCT' %}selected{% endif %}>October</option>
+                                            <option value="NOV" {% if form.payment_period.value == 'NOV' %}selected{% endif %}>November</option>
+                                            <option value="DEC" {% if form.payment_period.value == 'DEC' %}selected{% endif %}>December</option>
+                                            <option value="YEARLY" {% if form.payment_period.value == 'YEARLY' %}selected{% endif %}>Full Year</option>
+                                        </select>
+                                        {% if form.payment_period.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.payment_period.errors.0 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="invalid-feedback">
+                                                Please select a payment period.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div class="mb-4">
+                                    <label for="status" class="form-label small text-muted mb-1">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Status <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-tasks text-muted"></i>
+                                        </span>
+                                        <select class="form-select form-select-lg {% if form.status.errors %}is-invalid{% endif %}" 
+                                                id="status" 
+                                                name="status" 
+                                                required>
+                                            <option value="Paid" {% if form.status.value == 'Paid' %}selected{% endif %}>
+                                                <i class="fas fa-check-circle text-success me-2"></i> Paid
+                                            </option>
+                                            <option value="Pending" {% if form.status.value == 'Pending' %}selected{% endif %}>
+                                                <i class="fas fa-clock text-warning me-2"></i> Pending
+                                            </option>
+                                            <option value="Overdue" {% if form.status.value == 'Overdue' %}selected{% endif %}>
+                                                <i class="fas fa-exclamation-triangle text-danger me-2"></i> Overdue
+                                            </option>
+                                            <option value="Failed" {% if form.status.value == 'Failed' %}selected{% endif %}>
+                                                <i class="fas fa-times-circle text-danger me-2"></i> Failed
+                                            </option>
+                                        </select>
+                                        {% if form.status.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.status.errors.0 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="invalid-feedback">
+                                                Please select a payment status.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Full Width Fields -->
+                            <div class="col-12">
+                                <!-- Notes -->
+                                <div class="mb-4">
+                                    <label for="notes" class="form-label small text-muted mb-1">
+                                        <i class="far fa-sticky-note me-1"></i>
+                                        Notes
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="far fa-edit text-muted"></i>
+                                        </span>
+                                        <textarea class="form-control {% if form.notes.errors %}is-invalid{% endif %}" 
+                                                  id="notes" 
+                                                  name="notes" 
+                                                  rows="3"
+                                                  placeholder="Enter any additional information about this payment">{{ form.notes.value|default:'' }}</textarea>
+                                        {% if form.notes.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.notes.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12 mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'landlord:payments' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i> Back to Payments
+                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <button type="reset" class="btn btn-outline-secondary">
+                                            <i class="fas fa-undo me-2"></i> Reset
+                                        </button>
+                                        <button type="submit" class="btn btn-primary px-4">
+                                            <i class="fas fa-save me-2"></i> Record Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 500;
+    }
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+        border: 1px solid #e3e6f0;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+    .input-group-text {
+        background-color: #f8f9fc;
+        border: 1px solid #e3e6f0;
+    }
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid #e3e6f0;
+        font-weight: 600;
+    }
+    .btn {
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2653d4;
+    }
+    .btn-outline-secondary {
+        color: #6e707e;
+        border-color: #d1d3e2;
+    }
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fc;
+        border-color: #d1d3e2;
+        color: #6e707e;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set today's date as default for payment date
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('payment_date').value = today;
+        
+        // Initialize Select2 if available
+        if ($.fn.select2) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Select a tenant',
+                allowClear: true
+            });
+        }
+        
+        // Update property and unit fields when tenant is selected
+        const tenantSelect = document.getElementById('tenant');
+        const propertyInput = document.getElementById('property');
+        const unitInput = document.getElementById('unit');
+        
+        if (tenantSelect) {
+            tenantSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    propertyInput.value = selectedOption.dataset.property || '';
+                    unitInput.value = selectedOption.dataset.unit || '';
+                } else {
+                    propertyInput.value = '';
+                    unitInput.value = '';
+                }
+            });
+        }
+        
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        min-height: 38px;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        padding-left: 0;
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .card-header {
+        border-top-left-radius: 10px !important;
+        border-top-right-radius: 10px !important;
+        font-weight: 600;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    
+    .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    
+    .was-validated .form-control:invalid, .form-control.is-invalid, 
+    .was-validated .form-select:invalid, .form-select.is-invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    
+    .was-validated .form-control:invalid ~ .invalid-feedback,
+    .was-validated .form-select:invalid ~ .invalid-feedback,
+    .form-control.is-invalid ~ .invalid-feedback,
+    .form-select.is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+    
+    @media (max-width: 768px) {
+        .col-md-6 {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}

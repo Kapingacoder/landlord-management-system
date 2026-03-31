@@ -1,0 +1,38 @@
+{% load static %}
+<!-- Profile Settings – Manage Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profile Settings - WAPANGAJI</title>
+    <link rel="stylesheet" href="{% static 'landlord/settings.css' %}">
+    <!-- Comment: Modern, responsive CSS for landlord settings -->
+</head>
+<body>
+    <main class="settings-main">
+        <h1 class="settings-title">Manage Profile Settings</h1>
+        <!-- Success/Error Messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <!-- Profile Edit Form -->
+        <form method="post" enctype="multipart/form-data" class="settings-card">
+            {% csrf_token %}
+            <h2>Edit Profile</h2>
+            {% if profile_picture_url %}
+                <div class="profile-pic-preview">
+                    <img src="{{ profile_picture_url }}" alt="Profile Picture" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:1rem;">
+                </div>
+            {% endif %}
+            {{ profile_form.as_p }}
+            <button type="submit" name="save_profile" class="btn btn-primary">Save Profile</button>
+            <!-- Comment: All fields save to DB and show confirmation. -->
+        </form>
+    </main>
+</body>
+</html>

@@ -1,0 +1,166 @@
+{% extends 'landlord/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Message: {{ message.subject }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-envelope-open me-2"></i>Message Details</h1>
+            <p class="text-muted mb-0">View and reply to messages from your tenants</p>
+        </div>
+        <a href="{% url 'landlord:messages' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Inbox
+        </a>
+    </div>
+
+    <!-- ============================================
+         MAIN CONTENT AREA
+         ============================================ -->
+    <!-- Message Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-envelope me-1"></i>Message from {{ message.sender.get_full_name|default:message.sender.username }}
+            </h6>
+            <span class="badge bg-{% if not message.read_at %}primary{% else %}secondary{% endif %}">
+                {% if not message.read_at %}Unread{% else %}Read{% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h5 class="mb-1">{{ message.subject }}</h5>
+                    <p class="text-muted mb-0">
+                        <i class="far fa-user me-1"></i>
+                        {{ message.sender.get_full_name|default:message.sender.username }}
+                        {% if message.sender.user_type == 'tenant' %}
+                            {% with tenancy=message.sender.tenancies.first %}
+                                {% if tenancy %}
+                                    <span class="ms-2">
+                                        <i class="fas fa-home me-1"></i>
+                                        {{ tenancy.unit.property.name }} - Unit {{ tenancy.unit.unit_identifier }}
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-muted small">
+                    <i class="far fa-clock me-1"></i>
+                    {{ message.sent_at|date:"M d, Y H:i" }}
+                </div>
+            </div>
+            
+            <div class="message-content p-3 bg-light rounded mb-4">
+                {{ message.body|linebreaks }}
+            </div>
+            
+            <!-- Reply Form -->
+            <div class="reply-form mt-4 pt-4 border-top">
+                <h5 class="mb-3">
+                    <i class="fas fa-reply me-2"></i>Reply to {{ message.sender.get_full_name|default:message.sender.username }}
+                </h5>
+                
+                <form method="POST" action="{% url 'landlord:message_detail' message.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="subject" 
+                               name="subject" 
+                               value="Re: {{ message.subject }}" 
+                               required>
+                    </div>
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Please correct the errors below.
+                        <ul class="mb-0 mt-2">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="body" class="form-label">Your Message</label>
+                        <textarea class="form-control" 
+                                 id="body" 
+                                 name="body" 
+                                 rows="5" 
+                                 required>{{ form.body.value|default:'' }}</textarea>
+                        {% if form.body.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.body.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'landlord:messages' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Send Reply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-content {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.reply-form {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.message-content pre {
+    background-color: #f1f1f1;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+}
+
+.message-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea#body');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        // Trigger initial resize
+        textarea.dispatchEvent(new Event('input'));
+    }
+    
+    // Focus the message body field when the page loads
+    const messageBody = document.getElementById('body');
+    if (messageBody) {
+        messageBody.focus();
+    }
+});
+</script>
+
+{% endblock %}

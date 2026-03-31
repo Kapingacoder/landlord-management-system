@@ -1,0 +1,222 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-bell me-2"></i>Notifications</h1>
+            <p class="text-muted mb-0">Stay updated with all system activities</p>
+        </div>
+        <a href="{% url 'landlord:landlord_notification_preferences_manage' %}" class="btn btn-outline-primary">
+            <i class="fas fa-cog me-1"></i>Preferences
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Unread Messages
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ unread_messages }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-envelope fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Maintenance
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_maintenance }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tools fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Recent Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ recent_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Activities
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_notifications }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-1"></i>Recent Activities
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if notifications %}
+                <div class="timeline">
+                    {% for notification in notifications %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-{{ notification.color }}">
+                            <i class="{{ notification.icon }}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="{{ notification.url }}" class="text-decoration-none">
+                                            {{ notification.title }}
+                                        </a>
+                                    </h6>
+                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ notification.date|timesince }} ago
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    <span class="badge bg-{{ notification.color }}">
+                                        {{ notification.type|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No notifications yet</h5>
+                    <p class="text-muted">When there are new activities, they'll appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid hsl(248, 95%, 40%) !important;
+}
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: white;
+}
+
+.timeline-content {
+    background: #faf9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 3px solid #e9ecef;
+}
+
+.timeline-content h6 {
+    color: #5a5c69;
+}
+
+.timeline-content h6 a {
+    color: #5a5c69;
+}
+
+.timeline-content h6 a:hover {
+    color: #4e73df;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,519 @@
+{% extends 'landlord/landlord_base.html' %}
+{% load math_filters %}
+{% load humanize %}
+
+{% block title %}Reports & Analytics{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-chart-line me-2 text-primary"></i>Reports & Analytics
+            </h1>
+            <p class="text-muted mb-0">Comprehensive insights into your property portfolio</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+            <a href="{% url 'landlord:export_payments_csv' %}" class="btn btn-outline-success">
+                <i class="fas fa-download me-1"></i>Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <!-- Total Properties -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Properties
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_properties }}</div>
+                            <div class="text-xs text-muted">Properties in portfolio</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupancy Rate -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Occupancy Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if total_units > 0 %}
+                                    {{ occupied_units|mul:100|div:total_units|floatformat:1 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-muted">{{ occupied_units }} of {{ total_units }} units</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Income -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Monthly Income
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">TZS {{ monthly_income|floatformat:0|intcomma }}</div>
+                            <div class="text-xs text-muted">From occupied units</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Status -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Payment Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if pending_payments > 0 or late_payments > 0 %}
+                                    <span class="text-warning">{{ pending_payments }}</span> / <span class="text-danger">{{ late_payments }}</span>
+                                {% else %}
+                                    <span class="text-success">All Clear</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-muted">Pending / Late payments</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Monthly Income Trend -->
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-1"></i>Monthly Income Trend (Last 6 Months)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="incomeChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupancy Overview -->
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i>Occupancy Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="occupancyChart" width="300" height="200" style="max-width: 100%; height: auto;"></canvas>
+                    <div class="mt-3 text-center">
+                        <div class="row">
+                            <div class="col-6">
+                                <span class="badge bg-success p-2">
+                                    <i class="fas fa-check me-1"></i>Occupied: {{ occupied_units }}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-secondary p-2">
+                                    <i class="fas fa-home me-1"></i>Vacant: {{ vacant_units }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property Performance and Recent Payments -->
+    <div class="row mb-4">
+        <!-- Property Performance -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-1"></i>Property Performance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-receipt me-1"></i>Recent Payments
+                    </h6>
+                    <a href="{% url 'landlord:payments' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                        <div class="table-responsive">
+                            <table class="table table-borderless table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Tenant</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in recent_payments %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle bg-primary text-white me-2" style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                                    {{ payment.tenancy.tenant.first_name|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <div class="font-weight-bold">{{ payment.tenancy.tenant.get_full_name|truncatechars:15 }}</div>
+                                                    <small class="text-muted">{{ payment.tenancy.unit.unit_number }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">TZS {{ payment.amount|floatformat:0|intcomma }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ payment.date|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if payment.status == 'Paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif payment.status == 'Pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif payment.status == 'Late' %}
+                                                <span class="badge bg-danger">Late</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ payment.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent payments found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Insights -->
+    <div class="row">
+        <!-- Payment Method Breakdown -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-credit-card me-1"></i>Payment Methods
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentMethodsChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Overview -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tools me-1"></i>Maintenance Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% load static %}
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="maintenance-stat">
+                                <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                                <h4 class="mb-0">{{ pending_maintenance|default:0 }}</h4>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="maintenance-stat">
+                                <i class="fas fa-wrench fa-2x text-info mb-2"></i>
+                                <h4 class="mb-0">{{ maintenance_in_progress|default:0 }}</h4>
+                                <small class="text-muted">In Progress</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="maintenance-stat">
+                                <i class="fas fa-check fa-2x text-success mb-2"></i>
+                                <h4 class="mb-0">{{ maintenance_completed|default:0 }}</h4>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Income Chart
+const incomeCtx = document.getElementById('incomeChart');
+if (incomeCtx) {
+    new Chart(incomeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ income_months|safe }},
+            datasets: [{
+                label: 'Monthly Income (TZS)',
+                data: {{ income_data|safe }},
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'TZS ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Occupancy Chart
+const occupancyCtx = document.getElementById('occupancyChart');
+if (occupancyCtx) {
+    new Chart(occupancyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Occupied Units', 'Vacant Units'],
+            datasets: [{
+                data: [{{ occupied_units }}, {{ vacant_units }}],
+                backgroundColor: ['#1cc88a', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#c0392b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: false,
+            animation: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Property Performance Chart
+const performanceCtx = document.getElementById('performanceChart');
+if (performanceCtx) {
+    new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ property_names|safe }},
+            datasets: [{
+                label: 'Occupied Units',
+                data: {{ property_performance|safe }},
+                backgroundColor: '#36b9cc',
+                borderColor: '#2c9faf',
+                borderWidth: 1,
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Payment Methods Chart
+const paymentMethodsCtx = document.getElementById('paymentMethodsChart');
+if (paymentMethodsCtx) {
+    new Chart(paymentMethodsCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ payment_method_labels|safe }},
+            datasets: [{
+                data: {{ payment_method_data|safe }},
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2617']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+
+<style>
+/* Custom styles for the reports page */
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.maintenance-stat {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media print {
+    .btn, .card-header {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

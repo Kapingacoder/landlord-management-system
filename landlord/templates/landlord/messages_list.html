@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags for Responsiveness & SEO -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Landlord Messages - View and manage communications with tenants">
+    <title>{{ page_title }} - WAPANGAJI Landlord</title>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'landlord/style.css' %}">
+</head>
+<body>
+    <!-- ============================================
+         HEADER / NAVBAR
+         ============================================ -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>WAPANGAJI Landlord</span>
+            </div>
+
+            <!-- Top Right Icons -->
+            <div class="header-icons">
+                <!-- Notifications -->
+                <div class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </div>
+
+                <!-- User Profile -->
+                <div class="user-profile">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+
+                <!-- Back to Dashboard -->
+                <a href="{% url 'landlord:dashboard' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================
+         MAIN CONTENT AREA
+         ============================================ -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-envelope"></i> Messages</h1>
+            <div class="page-actions">
+                <a href="{% url 'landlord:send_message' %}" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send New Message
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages Section -->
+        <section class="section">
+            {% if messages %}
+                <div class="messages-full-list">
+                    {% for message in messages %}
+                    <div class="message-card">
+                        <div class="message-header">
+                            <div class="sender-info">
+                                <div class="avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div>
+                                    <h4>{{ message.sender.get_full_name|default:message.sender.username }}</h4>
+                                    <p class="time">{{ message.sent_at|date:"M d, Y H:i" }}</p>
+                                    <span class="property-info">
+                                        <i class="fas fa-building"></i>
+                                        {% with tenancy=message.sender.tenancies.first %}
+                                            {% if tenancy %}
+                                                {{ tenancy.unit.property.name }} - Unit {{ tenancy.unit.unit_identifier }}
+                                            {% else %}
+                                                No property association
+                                            {% endif %}
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                            </div>
+                            {% if not message.read_at %}
+                                <span class="unread-badge">Unread</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="message-body">
+                            <h4>{{ message.subject }}</h4>
+                            <p>{{ message.body|truncatewords:50 }}</p>
+                        </div>
+
+                        <div class="message-footer">
+                            <a href="{% url 'landlord:message_detail' message.pk %}" class="btn-link">
+                                {% if not message.read_at %}
+                                    <i class="fas fa-eye"></i> Read & Reply →
+                                {% else %}
+                                    <i class="fas fa-reply"></i> Reply →
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Messages</h3>
+                    <p>You don't have any messages from tenants yet</p>
+                    <a href="{% url 'landlord:send_message' %}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Your First Message
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
+    <script>
+        // Basic interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any message-specific interactions here
+            console.log('Messages page loaded');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Payments{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-credit-card me-2 text-primary"></i>Payments
+            </h1>
+            <p class="text-muted mb-0">View and manage all payment records</p>
+        </div>
+    </div>
+
+    {% if payments %}
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-borderless table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-user me-1"></i>Tenant</th>
+                            <th><i class="fas fa-building me-1"></i>Property</th>
+                            <th><i class="fas fa-money-bill-wave me-1"></i>Amount</th>
+                            <th><i class="far fa-calendar-alt me-1"></i>Date</th>
+                            <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                            <th><i class="fas fa-credit-card me-1"></i>Method</th>
+                            <th><i class="fas fa-hashtag me-1"></i>Reference</th>
+                            <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary text-white me-2" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">
+                                        {{ payment.tenancy.tenant.first_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold">{{ payment.tenancy.tenant.get_full_name|default:payment.tenancy.tenant.username }}</div>
+                                        <small class="text-muted">{{ payment.tenancy.unit.unit_number }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ payment.tenancy.unit.property.name }}</td>
+                            <td>TZS {{ payment.amount|floatformat:2 }}</td>
+                            <td>{{ payment.date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if payment.status == 'Paid' %}
+                                    <span class="badge bg-success">{{ payment.status }}</span>
+                                {% elif payment.status == 'Pending' %}
+                                    <span class="badge bg-warning">{{ payment.status }}</span>
+                                {% elif payment.status == 'Late' %}
+                                    <span class="badge bg-danger">{{ payment.status }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ payment.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.method }}</td>
+                            <td>{{ payment.reference_number|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'tenancy:tenant_detail_for_landlord' payment.tenancy.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Total Amount Summary -->
+            <div class="mt-4 p-3 bg-light rounded">
+                <h5 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>
+                    Total Payments Received: <strong>TZS {{ total_amount|floatformat:2 }}</strong>
+                </h5>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No Payments Found</h4>
+        <p class="text-muted">No payment records have been added yet.</p>
+        <a href="{% url 'landlord:record_payment' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Record First Payment
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Custom styles for the payments page */
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    border-top: none;
+    color: #6c757d;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+</style>
+{% endblock %}

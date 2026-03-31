@@ -1,0 +1,880 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Meta Tags for Responsiveness & SEO -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Landlord Dashboard - Manage properties, tenants, payments, and maintenance"
+    />
+    <title>Landlord Dashboard - WAPANGAJI</title>
+
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'landlord/style.css' %}?v=12" />
+  </head>
+  <body>
+    <!-- ============================================
+         HEADER / NAVBAR
+         ============================================ -->
+    <header class="header">
+      <div class="header-container">
+        <!-- Logo -->
+        
+          <span>WAPANGAJI</span>
+        
+
+        <!-- Top Right Icons -->
+        <div class="header-icons">
+          
+
+          
+    </header>
+
+    <!-- ============================================
+         MAIN CONTENT AREA
+         ============================================ -->
+    <main class="main-content">
+      <!-- Dashboard Title Section -->
+      <div class="dashboard-header">
+        <h1>Welcome, {{ user.first_name|default:user.username }}!</h1>
+        <p class="subtitle">Here's your rental management overview</p>
+      </div>
+
+      <!-- Feature Cards -->
+      <div class="icon-grid">
+        <a href="{% url 'landlord:home' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">dashboard</i>
+          </div>
+          <span class="icon-label">Home</span>
+        </a>
+        <a href="{% url 'landlord:properties' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">business</i>
+          </div>
+          <span class="icon-label">Properties</span>
+        </a>
+        <a href="{% url 'landlord:tenants' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">group</i>
+          </div>
+          <span class="icon-label">Tenants</span>
+        </a>
+        <a href="{% url 'landlord:payments' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">attach_money</i>
+          </div>
+          <span class="icon-label">Payments</span>
+        </a>
+        <a href="{% url 'landlord:manage_documents' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">file_upload</i>
+          </div>
+          <span class="icon-label">Documents</span>
+        </a>
+        <a href="{% url 'landlord:messages' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">mail</i>
+          </div>
+          <span class="icon-label">Messages</span>
+        </a>
+        <a href="{% url 'landlord:maintenance' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">build</i>
+          </div>
+          <span class="icon-label">Maintenance</span>
+        </a>
+        <a href="{% url 'landlord:reports' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">bar_chart</i>
+          </div>
+          <span class="icon-label">Reports</span>
+        </a>
+        <a href="{% url 'landlord:notifications' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">notifications</i>
+          </div>
+          <span class="icon-label">Notifications</span>
+        </a>
+        <a href="{% url 'landlord:settings' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">settings</i>
+          </div>
+          <span class="icon-label">Settings</span>
+        </a>
+        <a href="{% url 'home:logout' %}" class="icon-card">
+          <div class="icon-wrapper">
+            <i class="material-icons">logout</i>
+          </div>
+          <span class="icon-label">Logout</span>
+        </a>
+      </div>
+    </main>
+
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
+    <script>
+      // ============================================
+      // MAINTENANCE REQUESTS FUNCTIONALITY
+      // ============================================
+
+      // Filter functionality
+      const statusFilter = document.getElementById('statusFilter');
+      const propertyFilter = document.getElementById('propertyFilter');
+      const searchInput = document.getElementById('searchInput');
+      const clearFiltersBtn = document.getElementById('clearFilters');
+      const maintenanceRows = document.querySelectorAll('.maintenance-row');
+
+      function filterMaintenanceRequests() {
+          const statusValue = statusFilter.value.toLowerCase();
+          const propertyValue = propertyFilter.value;
+          const searchValue = searchInput.value.toLowerCase();
+
+          maintenanceRows.forEach(row => {
+              const status = row.dataset.status;
+              const property = row.dataset.property;
+              const title = row.querySelector('.title-cell strong').textContent.toLowerCase();
+              const tenant = row.querySelector('.tenant-name').textContent.toLowerCase();
+
+              const statusMatch = !statusValue || status === statusValue;
+              const propertyMatch = !propertyValue || property === propertyValue;
+              const searchMatch = !searchValue ||
+                  title.includes(searchValue) ||
+                  tenant.includes(searchValue);
+
+              if (statusMatch && propertyMatch && searchMatch) {
+                  row.style.display = '';
+              } else {
+                  row.style.display = 'none';
+              }
+          });
+      }
+
+      // Event listeners for filters
+      statusFilter.addEventListener('change', filterMaintenanceRequests);
+      propertyFilter.addEventListener('change', filterMaintenanceRequests);
+      searchInput.addEventListener('input', filterMaintenanceRequests);
+
+      clearFiltersBtn.addEventListener('click', () => {
+          statusFilter.value = '';
+          propertyFilter.value = '';
+          searchInput.value = '';
+          maintenanceRows.forEach(row => {
+              row.style.display = '';
+          });
+      });
+
+      // Action buttons functionality
+      const startButtons = document.querySelectorAll('.btn-start');
+      const completeButtons = document.querySelectorAll('.btn-complete');
+
+      startButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const requestId = this.dataset.requestId;
+              if (confirm('Mark this maintenance request as "In Progress"?')) {
+                  // Here you would typically make an AJAX call to update the status
+                  // For now, we'll just show an alert
+                  alert(`Request ${requestId} marked as In Progress`);
+                  // Reload the page or update the UI accordingly
+                  location.reload();
+              }
+          });
+      });
+
+      completeButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const requestId = this.dataset.requestId;
+              if (confirm('Mark this maintenance request as "Completed"?')) {
+                  // Here you would typically make an AJAX call to update the status
+                  // For now, we'll just show an alert
+                  alert(`Request ${requestId} marked as Completed`);
+                  // Reload the page or update the UI accordingly
+                  location.reload();
+              }
+          });
+      });
+
+      // Refresh button functionality
+      const refreshBtn = document.getElementById('refreshMaintenance');
+      refreshBtn.addEventListener('click', () => {
+          refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+          refreshBtn.disabled = true;
+
+          // Simulate refresh delay
+          setTimeout(() => {
+              location.reload();
+          }, 1000);
+      });
+
+
+      // Enhanced table row interactions
+      maintenanceRows.forEach(row => {
+          row.addEventListener('mouseenter', function() {
+              this.style.transform = 'scale(1.01)';
+          });
+
+          row.addEventListener('mouseleave', function() {
+              this.style.transform = 'scale(1)';
+          });
+      });
+
+      // ============================================
+      // PAYMENT HISTORY FUNCTIONALITY
+      // ============================================
+
+      // Payment history elements
+      const paymentElements = {
+          startDate: document.getElementById('startDate'),
+          endDate: document.getElementById('endDate'),
+          propertyFilter: document.getElementById('propertyFilter'),
+          tenantFilter: document.getElementById('tenantFilter'),
+          statusFilter: document.getElementById('statusFilter'),
+          applyFilters: document.getElementById('applyFilters'),
+          clearFilters: document.getElementById('clearFilters'),
+          refreshPayments: document.getElementById('refreshPayments'),
+          expandAllPayments: document.getElementById('expandAllPayments'),
+          exportCsv: document.getElementById('exportCsv'),
+          exportPdf: document.getElementById('exportPdf'),
+          clearAllFilters: document.getElementById('clearAllFilters'),
+          paymentTableBody: document.getElementById('paymentTableBody'),
+          loadingIndicator: document.getElementById('loadingIndicator'),
+          emptyState: document.getElementById('emptyState'),
+          paymentHistoryContainer: document.getElementById('paymentHistoryContainer')
+      };
+
+      // Stats elements
+      const statsElements = {
+          totalAmount: document.getElementById('totalAmount'),
+          totalRecords: document.getElementById('totalRecords'),
+          paidAmount: document.getElementById('paidAmount'),
+          pendingAmount: document.getElementById('pendingAmount'),
+          grandTotal: document.getElementById('grandTotal'),
+          grandCount: document.getElementById('grandCount'),
+          activeTenants: document.getElementById('activeTenants')
+      };
+
+      // Payment data storage
+      let paymentData = [];
+      let filteredData = [];
+
+      // Initialize payment history
+      function initializePaymentHistory() {
+          // Load Chart.js library if not already loaded
+          if (typeof Chart === 'undefined') {
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+              script.onload = function() {
+                  loadPaymentData();
+              };
+              document.head.appendChild(script);
+          } else {
+              loadPaymentData();
+          }
+          setupEventListeners();
+      }
+
+      // Load payment data from API with retry logic
+      function loadPaymentData(filters = {}, retryCount = 0) {
+          const MAX_RETRIES = 3;
+          const RETRY_DELAY = 2000; // 2 seconds
+
+          showLoading(true);
+          hideError();
+
+          // Add cache buster to prevent caching issues
+          if (!filters._) {
+              filters._ = new Date().getTime();
+          }
+
+          const params = new URLSearchParams(filters);
+          const url = `/landlord/payment-history/?${params}`;
+
+          console.log('Fetching payment data from:', url);
+
+          fetch(url, {
+              method: 'GET',
+              headers: {
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+              },
+              credentials: 'same-origin'
+          })
+          .then(response => {
+              if (!response.ok) {
+                  return response.text().then(text => {
+                      console.error('Error response:', text);
+                      throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                  });
+              }
+              return response.json();
+          })
+          .then(data => {
+              console.log('Payment data received:', data);
+
+              if (data.error) {
+                  throw new Error(data.error);
+              }
+
+              // Ensure we have valid payment data
+              if (!data.payment_data) {
+                  console.warn('No payment_data in response, using empty array');
+                  data.payment_data = [];
+              }
+
+              paymentData = Array.isArray(data.payment_data) ? data.payment_data : [];
+              filteredData = [...paymentData];
+
+              // Ensure each payment has the required fields
+              filteredData = filteredData.map(tenantGroup => ({
+                  ...tenantGroup,
+                  payments: Array.isArray(tenantGroup.payments) ? tenantGroup.payments : [],
+                  total_paid: parseFloat(tenantGroup.total_paid || 0),
+                  total_pending: parseFloat(tenantGroup.total_pending || 0),
+                  total_late: parseFloat(tenantGroup.total_late || 0),
+                  total_amount: parseFloat(tenantGroup.total_amount || 0),
+                  payment_count: parseInt(tenantGroup.payment_count || 0, 10)
+              }));
+
+              console.log('Processed payment data:', filteredData);
+
+              // Only try to populate filters if we have data
+              if (data.filters) {
+                  populateFilterDropdowns(data.filters);
+              }
+
+              renderPaymentData();
+              updateStats();
+              showLoading(false);
+          })
+          .catch(error => {
+              console.error('Error loading payment data:', error);
+
+              if (retryCount < MAX_RETRIES) {
+                  // Auto-retry with exponential backoff
+                  const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+                  console.log(`Retrying in ${delay}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+
+                  setTimeout(() => {
+                      loadPaymentData(filters, retryCount + 1);
+                  }, delay);
+              } else {
+                  const errorMessage = error.message || 'Failed to load payment data. Please check your connection and try again.';
+                  showError(
+                      errorMessage,
+                      () => loadPaymentData(filters) // Retry callback
+                  );
+              }
+          })
+          .finally(() => {
+              showLoading(false);
+          });
+      }
+
+      // Populate filter dropdowns
+      function populateFilterDropdowns(filters) {
+          if (filters.property_names) {
+              paymentElements.propertyFilter.innerHTML = '<option value="">All Properties</option>';
+              filters.property_names.forEach(property => {
+                  const option = document.createElement('option');
+                  option.value = property;
+                  option.textContent = property;
+                  paymentElements.propertyFilter.appendChild(option);
+              });
+          }
+
+          if (filters.tenants) {
+              paymentElements.tenantFilter.innerHTML = '<option value="">All Tenants</option>';
+              filters.tenants.forEach(tenant => {
+                  const option = document.createElement('option');
+                  option.value = tenant.id;
+                  option.textContent = tenant.name;
+                  paymentElements.tenantFilter.appendChild(option);
+              });
+          }
+
+          if (filters.status_choices) {
+              paymentElements.statusFilter.innerHTML = '<option value="">All Status</option>';
+              filters.status_choices.forEach(status => {
+                  const option = document.createElement('option');
+                  option.value = status;
+                  option.textContent = status;
+                  paymentElements.statusFilter.appendChild(option);
+              });
+          }
+      }
+
+      // Render payment data in table with collapsible rows
+      function renderPaymentData() {
+          if (filteredData.length === 0) {
+              showEmptyState(true);
+              return;
+          }
+
+          showEmptyState(false);
+          paymentElements.paymentTableBody.innerHTML = '';
+
+          filteredData.forEach(tenantGroup => {
+              // Create main summary row
+              const summaryRow = document.createElement('tr');
+              summaryRow.className = 'summary-row';
+              summaryRow.dataset.tenantId = tenantGroup.tenant_id;
+
+              // Calculate paid and pending amounts
+              const paidPayments = tenantGroup.payments.filter(p => p.status === 'Paid');
+              const pendingPayments = tenantGroup.payments.filter(p => p.status === 'Pending');
+              const paidAmount = paidPayments.reduce((sum, p) => sum + p.amount, 0);
+              const pendingAmount = pendingPayments.reduce((sum, p) => sum + p.amount, 0);
+              const averagePayment = tenantGroup.payment_count > 0
+                  ? (tenantGroup.total_amount / tenantGroup.payment_count).toFixed(2)
+                  : '0.00';
+
+              summaryRow.innerHTML = `
+                  <td class="tenant-cell">
+                      <div class="d-flex align-items-center">
+                          <button class="btn btn-sm btn-link toggle-details" data-target="details-${tenantGroup.tenant_id}">
+                              <i class="fas fa-chevron-right"></i>
+                          </button>
+                          <div class="tenant-info">
+                              <div class="tenant-avatar">
+                                  ${tenantGroup.tenant_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </div>
+                              <div class="tenant-details">
+                                  <h5 class="mb-0">${tenantGroup.tenant_name}</h5>
+                                  <small class="text-muted">
+                                      <i class="fas fa-building"></i>
+                                      ${tenantGroup.property_name} - ${tenantGroup.unit_identifier}
+                                  </small>
+                              </div>
+                          </div>
+                      </div>
+                  </td>
+                  <td class="text-end">
+                      <div class="d-flex justify-content-between">
+                          <span>Total Paid:</span>
+                          <strong>$${paidAmount.toFixed(2)}</strong>
+                      </div>
+                      <div class="d-flex justify-content-between">
+                          <span>Pending:</span>
+                          <strong>$${pendingAmount.toFixed(2)}</strong>
+                      </div>
+                  </td>
+                  <td class="text-end">
+                      <div class="d-flex justify-content-between">
+                          <span>Total Amount:</span>
+                          <strong>$${tenantGroup.total_amount.toFixed(2)}</strong>
+                      </div>
+                      <div class="d-flex justify-content-between">
+                          <span>Payments:</span>
+                          <span>${tenantGroup.payment_count} (Avg: $${averagePayment})</span>
+                      </div>
+                  </td>
+              `;
+
+              // Create details row
+              const detailsRow = document.createElement('tr');
+              detailsRow.className = 'details-row';
+              detailsRow.id = `details-${tenantGroup.tenant_id}`;
+              detailsRow.style.display = 'none';
+              detailsRow.innerHTML = `
+                  <td colspan="3" class="p-0">
+                      <div class="payment-details-container">
+                          <h6 class="px-3 pt-3 mb-2">Payment History</h6>
+                          ${tenantGroup.payments.length > 0 ? `
+                              <table class="table table-sm table-hover mb-0">
+                                  <thead>
+                                      <tr>
+                                          <th>Date</th>
+                                          <th>Amount</th>
+                                          <th>Method</th>
+                                          <th>Status</th>
+                                          <th>Description</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      ${tenantGroup.payments.map(payment => `
+                                          <tr>
+                                              <td>${payment.formatted_date}</td>
+                                              <td>$${payment.amount.toFixed(2)}</td>
+                                              <td>${payment.method || 'N/A'}</td>
+                                              <td>
+                                                  <span class="badge bg-${payment.status === 'Paid' ? 'success' : payment.status === 'Pending' ? 'warning' : 'danger'}">
+                                                      ${payment.status}
+                                                  </span>
+                                              </td>
+                                              <td>${payment.description || 'Rent Payment'}</td>
+                                          </tr>
+                                      `).join('')}
+                                  </tbody>
+                              </table>
+                          ` : `
+                              <div class="p-3 text-center text-muted">
+                                  No payment records found for this tenant.
+                              </div>
+                          `}
+                      </div>
+                  </td>
+              `;
+
+              // Add event listener for toggling details
+              const toggleBtn = summaryRow.querySelector('.toggle-details');
+              toggleBtn.addEventListener('click', function() {
+                  const icon = this.querySelector('i');
+                  const details = document.getElementById(this.dataset.target);
+
+                  if (details.style.display === 'none') {
+                      details.style.display = 'table-row';
+                      icon.classList.remove('fa-chevron-right');
+                      icon.classList.add('fa-chevron-down');
+                  } else {
+                      details.style.display = 'none';
+                      icon.classList.remove('fa-chevron-down');
+                      icon.classList.add('fa-chevron-right');
+                  }
+              });
+
+              // Add rows to table
+              paymentElements.paymentTableBody.appendChild(summaryRow);
+              paymentElements.paymentTableBody.appendChild(detailsRow);
+          });
+      }
+
+      // Update statistics
+      function updateStats() {
+          try {
+              // Initialize totals
+              let totalPaid = 0;
+              let totalPending = 0;
+              let totalLate = 0;
+              let totalAmount = 0;
+              let totalRecords = 0;
+
+              // Calculate totals from filtered data
+              filteredData.forEach(group => {
+                  totalPaid += parseFloat(group.total_paid || 0);
+                  totalPending += parseFloat(group.total_pending || 0);
+                  totalLate += parseFloat(group.total_late || 0);
+                  totalAmount += parseFloat(group.total_amount || 0);
+                  totalRecords += parseInt(group.payment_count || 0, 10);
+              });
+
+              // Calculate active tenants (those with at least one payment)
+              const activeTenants = filteredData.filter(group => group.payment_count > 0).length;
+
+              console.log('Updating stats:', {
+                  totalPaid,
+                  totalPending,
+                  totalLate,
+                  totalAmount,
+                  totalRecords,
+                  activeTenants
+              });
+
+              // Update UI elements with proper formatting
+              const formatCurrency = (amount) => {
+                  return new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'TZS',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                  }).format(amount);
+              };
+
+              // Update the stats elements
+              if (statsElements.totalAmount) statsElements.totalAmount.textContent = formatCurrency(totalAmount);
+              if (statsElements.totalRecords) statsElements.totalRecords.textContent = totalRecords;
+              if (statsElements.paidAmount) statsElements.paidAmount.textContent = formatCurrency(totalPaid);
+              if (statsElements.pendingAmount) statsElements.pendingAmount.textContent = formatCurrency(totalPending);
+              if (statsElements.lateAmount) statsElements.lateAmount.textContent = formatCurrency(totalLate);
+              if (statsElements.grandTotal) statsElements.grandTotal.textContent = formatCurrency(totalAmount);
+              if (statsElements.grandCount) statsElements.grandCount.textContent = totalRecords;
+              if (statsElements.activeTenants) statsElements.activeTenants.textContent = activeTenants;
+
+              // Update chart data if chart exists
+              if (window.paymentChart) {
+                  updatePaymentChart(totalPaid, totalPending, totalLate);
+              }
+          } catch (error) {
+              console.error('Error updating stats:', error);
+              showError('Error calculating payment statistics. Please try refreshing the page.');
+          }
+      }
+
+      // Update payment chart with new data
+      function updatePaymentChart(paid, pending, total) {
+          const ctx = document.getElementById('paymentChart')?.getContext('2d');
+          if (!ctx) return;
+
+          // Destroy existing chart if it exists
+          if (window.paymentChart) {
+              window.paymentChart.destroy();
+          }
+
+          // Create new chart
+          window.paymentChart = new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                  labels: ['Paid', 'Pending', 'Total'],
+                  datasets: [{
+                      data: [paid, pending, total],
+                      backgroundColor: [
+                          'rgba(40, 167, 69, 0.7)',  // Green for paid
+                          'rgba(255, 193, 7, 0.7)',   // Yellow for pending
+                          'rgba(23, 162, 184, 0.7)'   // Teal for total
+                      ],
+                      borderColor: [
+                          'rgba(40, 167, 69, 1)',
+                          'rgba(255, 193, 7, 1)',
+                          'rgba(23, 162, 184, 1)'
+                      ],
+                      borderWidth: 1
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      legend: {
+                          position: 'bottom',
+                      },
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  const label = context.label || '';
+                                  const value = context.raw || 0;
+                                  const percentage = Math.round((value / total) * 100) || 0;
+                                  return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
+
+      // Apply filters
+      function applyFilters() {
+          const filters = {
+              start_date: paymentElements.startDate.value,
+              end_date: paymentElements.endDate.value,
+              property: paymentElements.propertyFilter.value,
+              tenant: paymentElements.tenantFilter.value,
+              status: paymentElements.statusFilter.value
+          };
+
+          // Remove empty filters
+          Object.keys(filters).forEach(key => {
+              if (!filters[key]) {
+                  delete filters[key];
+              }
+          });
+
+          loadPaymentData(filters);
+      }
+
+      // Clear all filters
+      function clearFilters() {
+          paymentElements.startDate.value = '';
+          paymentElements.endDate.value = '';
+          paymentElements.propertyFilter.value = '';
+          paymentElements.tenantFilter.value = '';
+          paymentElements.statusFilter.value = '';
+
+          filteredData = [...paymentData];
+          renderPaymentData();
+          updateStats();
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+          paymentElements.applyFilters.addEventListener('click', applyFilters);
+          paymentElements.clearFilters.addEventListener('click', clearFilters);
+          paymentElements.refreshPayments.addEventListener('click', () => loadPaymentData());
+          paymentElements.clearAllFilters.addEventListener('click', clearFilters);
+
+          paymentElements.exportCsv.addEventListener('click', exportCsv);
+          paymentElements.exportPdf.addEventListener('click', exportPdf);
+
+          // Auto-apply filters on change (debounced)
+          let filterTimeout;
+          [paymentElements.startDate, paymentElements.endDate, paymentElements.propertyFilter,
+           paymentElements.tenantFilter, paymentElements.statusFilter].forEach(element => {
+              element.addEventListener('change', () => {
+                  clearTimeout(filterTimeout);
+                  filterTimeout = setTimeout(applyFilters, 500);
+              });
+          });
+      }
+
+      // Export functions
+      function exportCsv() {
+          const params = getCurrentFilters();
+          const url = `{% url 'landlord:export_payments_csv' %}?${params}`;
+          window.open(url, '_blank');
+      }
+
+      function exportPdf() {
+          const params = getCurrentFilters();
+          const url = `{% url 'landlord:export_payments_pdf' %}?${params}`;
+          window.open(url, '_blank');
+      }
+
+      function getCurrentFilters() {
+          const filters = {
+              start_date: paymentElements.startDate.value,
+              end_date: paymentElements.endDate.value,
+              property: paymentElements.propertyFilter.value,
+              tenant: paymentElements.tenantFilter.value,
+              status: paymentElements.statusFilter.value
+          };
+          return new URLSearchParams(filters);
+      }
+
+      // UI helper functions
+      function showLoading(show) {
+          paymentElements.loadingIndicator.style.display = show ? 'flex' : 'none';
+          if (!show) {
+              paymentElements.paymentHistoryContainer.style.display = 'block';
+          }
+      }
+
+      function showEmptyState(show) {
+          paymentElements.emptyState.style.display = show ? 'block' : 'none';
+          if (!show) {
+              paymentElements.paymentHistoryContainer.style.display = 'block';
+          } else {
+              paymentElements.paymentHistoryContainer.style.display = 'none';
+          }
+      }
+
+      function showError(message, retryCallback = null) {
+          // Hide loading indicator
+          showLoading(false);
+
+          // Create or update error message element
+          let errorElement = document.getElementById('paymentDataError');
+
+          if (!errorElement) {
+              errorElement = document.createElement('div');
+              errorElement.id = 'paymentDataError';
+              errorElement.className = 'alert alert-danger d-flex align-items-center justify-content-between';
+              errorElement.style.margin = '1rem 0';
+              errorElement.style.animation = 'fadeIn 0.3s ease-in-out';
+              errorElement.style.borderRadius = '0.5rem';
+              errorElement.style.padding = '1rem';
+              errorElement.style.backgroundColor = '#f8d7da';
+              errorElement.style.color = '#721c24';
+              errorElement.style.border = '1px solid #f5c6cb';
+
+              const paymentContainer = document.querySelector('.payment-history-container');
+              if (paymentContainer) {
+                  paymentContainer.parentNode.insertBefore(errorElement, paymentContainer);
+              }
+          }
+
+          let errorContent = `
+              <div class="d-flex align-items-center">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  <span>${message}</span>
+              </div>
+          `;
+
+          if (retryCallback) {
+              errorContent += `
+                  <button class="btn btn-sm btn-outline-danger" id="retryButton">
+                      <i class="fas fa-sync-alt me-1"></i> Retry
+                  </button>
+              `;
+          }
+
+          errorElement.innerHTML = errorContent;
+
+          // Add retry button event listener
+          const retryButton = document.getElementById('retryButton');
+          if (retryButton && retryCallback) {
+              retryButton.addEventListener('click', function() {
+                  errorElement.remove();
+                  retryCallback();
+              });
+          }
+
+          // Auto-hide error after 10 seconds
+          setTimeout(() => {
+              if (errorElement && document.body.contains(errorElement)) {
+                  errorElement.remove();
+              }
+          }, 10000);
+      }
+
+      function hideError() {
+          const errorElement = document.getElementById('paymentDataError');
+          if (errorElement) {
+              errorElement.remove();
+          }
+      }
+
+      // Add styles for error messages
+      const style = document.createElement('style');
+      style.textContent = `
+          @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(-10px); }
+              to { opacity: 1; transform: translateY(0); }
+          }
+          #paymentDataError {
+              animation: fadeIn 0.3s ease-in-out;
+              box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+              padding: 1rem;
+              border-radius: 0.5rem;
+              background-color: #f8d7da;
+              color: #721c24;
+              border: 1px solid #f5c6cb;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin: 1rem 0;
+          }
+          #retryButton {
+              margin-left: 1rem;
+              white-space: nowrap;
+          }
+          .payment-history-container {
+              position: relative;
+          }
+      `;
+      document.head.appendChild(style);
+
+      // Initialize when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+          initializePaymentHistory();
+
+          // Add retry button click handler for any dynamically added retry buttons
+          document.addEventListener('click', function(event) {
+              if (event.target.closest('#retryButton')) {
+                  const errorElement = document.getElementById('paymentDataError');
+                  if (errorElement) {
+                      errorElement.remove();
+                  }
+                  loadPaymentData(getCurrentFilters());
+              }
+          });
+      });
+    </script>
+  </body>
+</html>

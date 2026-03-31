@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Request Details - WAPANGAJI Landlord</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'landlord/style.css' %}">
+    <style>
+        .maintenance-detail {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+        }
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+        .detail-status {
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+        }
+        .status-pending { background: #fef3c7; color: #78350f; }
+        .status-inprogress { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .detail-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .info-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .info-value {
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        .detail-notes {
+            margin-bottom: 2rem;
+        }
+        .detail-notes h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .detail-photos {
+            margin-bottom: 2rem;
+        }
+        .detail-photos h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .photo-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+        .actions-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .action-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+        }
+        .action-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        .back-btn {
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) {
+            .maintenance-detail {
+                padding: 1rem;
+            }
+            .detail-info {
+                grid-template-columns: 1fr;
+            }
+            .actions-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>WAPANGAJI Landlord</span>
+            </div>
+            <nav class="nav">
+                <a href="{% url 'landlord:dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'home:index' %}" class="nav-link">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-tools"></i> Maintenance Request Details</h1>
+        </div>
+
+        <div class="maintenance-detail">
+            <!-- Back Button -->
+            <div class="back-btn">
+                <a href="{% url 'landlord:dashboard' %}#maintenance" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Header -->
+            <div class="detail-header">
+                <h2 class="detail-title">{{ request.title }}</h2>
+                <span class="detail-status status-{{ request.status|lower|cut:' ' }}">{{ request.status }}</span>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="detail-info">
+                <div class="info-item">
+                    <div class="info-label">Tenant</div>
+                    <div class="info-value">{{ request.tenant.get_full_name|default:request.tenant.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Property</div>
+                    <div class="info-value">{{ tenancy.unit.property.name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Unit</div>
+                    <div class="info-value">{{ tenancy.unit.unit_number }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Submitted Date</div>
+                    <div class="info-value">{{ request.submitted_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="detail-notes">
+                <h3><i class="fas fa-sticky-note"></i> Description</h3>
+                <p>{{ request.notes|default:"No additional notes provided." }}</p>
+            </div>
+
+            <!-- Photos -->
+            <div class="detail-photos mt-4">
+                <h3><i class="fas fa-images"></i> Photos</h3>
+                {% if request.photo %}
+                    <div class="photos-grid">
+                        <div class="photo-item">
+                            <img src="{{ MEDIA_URL }}{{ request.photo }}" 
+                                 alt="Maintenance Photo" 
+                                 class="img-fluid rounded shadow"
+                                 style="max-width: 100%; max-height: 500px; object-fit: contain;">
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No photos were attached to this maintenance request.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+                <!-- Update Status -->
+                <div class="action-card">
+                    <h3><i class="fas fa-edit"></i> Update Status</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select name="status" id="status">
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if value == request.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" name="update_status" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Status
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Send Message -->
+                <div class="action-card">
+                    <h3><i class="fas fa-envelope"></i> Send Message to Tenant</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" name="subject" id="subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="body">Message</label>
+                            <textarea name="body" id="body" required></textarea>
+                        </div>
+                        <button type="submit" name="send_message" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 WAPANGAJI. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

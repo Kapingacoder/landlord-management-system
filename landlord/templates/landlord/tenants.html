@@ -1,0 +1,159 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Tenants{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-users me-2 text-primary"></i>Tenants Management
+            </h1>
+            <p class="text-muted mb-0">Manage all your tenants and their tenancies</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'tenancy:add_tenant_for_landlord' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Add Tenant
+            </a>
+        </div>
+    </div>
+
+
+    {% if tenancies %}
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-borderless table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-user me-1"></i>Tenant Name</th>
+                            <th><i class="fas fa-envelope me-1"></i>Email</th>
+                            <th><i class="fas fa-phone me-1"></i>Phone</th>
+                            <th><i class="fas fa-building me-1"></i>Property</th>
+                            <th><i class="fas fa-home me-1"></i>Unit</th>
+                            <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                            <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tenancy in tenancies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-primary text-white me-2" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">
+                                        {{ tenancy.tenant.first_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold">{{ tenancy.tenant.get_full_name|default:tenancy.tenant.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ tenancy.tenant.email }}</td>
+                            <td>{{ tenancy.tenant.phone|default:"N/A" }}</td>
+                            <td>{{ tenancy.unit.property.name }}</td>
+                            <td>{{ tenancy.unit.unit_number }}</td>
+                            <td>
+                                {% if tenancy.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'tenancy:tenant_detail_for_landlord' tenancy.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No Tenants Found</h4>
+        <p class="text-muted">You haven't added any tenants yet. Start by adding your first tenant.</p>
+        <a href="{% url 'tenancy:add_tenant_for_landlord' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add Your First Tenant
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Custom styles for the tenants page */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+}
+
+.avatar-circle {
+    flex-shrink: 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}

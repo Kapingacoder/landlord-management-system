@@ -1,0 +1,135 @@
+/* ================= LANDLORD SETTINGS PAGE CSS ================= */
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    background: #f7f8fa;
+    margin: 0;
+    padding: 0;
+}
+.settings-main {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+.settings-title {
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    color: #333;
+}
+.settings-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-bottom: 2rem;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+.settings-card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #2d3a4a;
+}
+.settings-card label {
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 0.3rem;
+}
+.settings-card input,
+.settings-card select {
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #e0e3e8;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+.btn.btn-primary {
+    background: #2d7cf4;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(45,124,244,0.08);
+    transition: background 0.2s;
+}
+.btn.btn-primary:hover {
+    background: #1a5bb8;
+}
+.profile-pic-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.profile-pic-preview img {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    border: 2px solid #e0e3e8;
+}
+.messages {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+.message {
+    display: inline-block;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    margin: 0.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+.message.success {
+    background: #e6f7e6;
+    color: #2d7c4a;
+    border: 1px solid #b2e2b2;
+}
+.message.error {
+    background: #ffeaea;
+    color: #b82d2d;
+    border: 1px solid #f5b2b2;
+}
+.payment-methods-list {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+.payment-method-item {
+    background: #f5f7fa;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1rem;
+}
+.btn-xs {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+    margin-left: 0.5rem;
+    border-radius: 6px;
+}
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+}
+.btn-danger:hover {
+    background: #c0392b;
+}
+@media (max-width: 600px) {
+    .settings-main {
+        padding: 0.5rem;
+    }
+    .settings-card {
+        padding: 1rem 0.5rem;
+    }
+}
+/* Card comment: Responsive, modern styling for landlord settings page. Cards stack vertically on mobile. */
+/* Card comment: Message styles for confirmation after saving forms. */
+/* Card comment: Payment methods list and button styles for add/edit/delete. */

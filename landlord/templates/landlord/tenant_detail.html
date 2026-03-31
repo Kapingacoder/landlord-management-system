@@ -1,0 +1,323 @@
+{% extends 'landlord/landlord_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <div>
+                <h1 class="h3 mb-0 text-gray-800">{{ page_title }}</h1>
+                <p class="subtitle mb-0">Manage tenant details, payments, and communication</p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'tenancy:edit_tenant_for_landlord' tenancy.id %}" class="btn btn-info btn-icon-split">
+                <span class="icon text-white-50">
+                    <i class="fas fa-edit"></i>
+                </span>
+                <span class="text">Edit Tenant</span>
+            </a>
+            <a href="{% url 'landlord:record_payment' %}?tenant_id={{ tenant.id }}" class="btn btn-success btn-icon-split ml-2">
+                <span class="icon text-white-50">
+                    <i class="fas fa-plus"></i>
+                </span>
+                <span class="text">Record Payment</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tenant Information Card -->
+    <div class="row">
+        <!-- Tenant Details -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Tenant Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img class="img-profile rounded-circle" src="{% static 'img/undraw_profile.svg' %}" width="100">
+                    </div>
+                    <h4 class="text-center mb-4">{{ tenant.get_full_name|default:tenant.username }}</h4>
+                    
+                    <div class="mb-3">
+                        <p class="mb-1"><i class="fas fa-envelope mr-2 text-gray-400"></i> {{ tenant.email }}</p>
+                        <p class="mb-1"><i class="fas fa-phone mr-2 text-gray-400"></i> {{ tenant.phone|default:'N/A' }}</p>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar-alt mr-2 text-gray-400"></i> 
+                            Member since {{ tenant.date_joined|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="font-weight-bold text-primary mb-3">Emergency Contact</h6>
+                    <p class="mb-1">Name: {{ tenant.emergency_contact_name|default:'N/A' }}</p>
+                    <p class="mb-0">Phone: {{ tenant.emergency_contact_phone|default:'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tenancy Details -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Tenancy Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">{{ property.name }}</h5>
+                            <p class="mb-2"><i class="fas fa-door-open mr-2 text-gray-400"></i> Unit {{ unit.unit_number }}</p>
+                            <p class="mb-2"><i class="fas fa-map-marker-alt mr-2 text-gray-400"></i> {{ property.address }}</p>
+                            <p class="mb-0"><i class="fas fa-tag mr-2 text-gray-400"></i> TZS {{ rent_amount|floatformat:2 }} / month</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-left-primary h-100">
+                                <div class="card-body">
+                                    <div class="text-center">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Lease Period
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            Start: {{ tenancy.start_date|date:"M d, Y" }}
+                                            {% if tenancy.last_payment_date %}
+                                                <br>Last Payment: {{ tenancy.last_payment_date|date:"M d, Y" }}
+                                                <br>Months Paid: {{ tenancy.months_paid|default:"0" }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="badge badge-{% if tenancy.is_active %}success{% else %}secondary{% endif %} p-2">
+                                                {{ tenancy.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="mt-4 mb-4">
+                    
+                    <!-- Payment Summary -->
+                    <div class="row">
+                        <!-- Monthly Rent -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Monthly Rent</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">TZS {{ rent_amount|floatformat:2 }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-home fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Total Paid -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Total Paid</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">TZS {{ total_paid|floatformat:2 }}</div>
+                                            <div class="text-xs text-muted mt-1">{{ payments|length }} payment{{ payments|length|pluralize }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Status -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-left-{% if is_paid %}success{% elif is_overdue %}danger{% else %}info{% endif %} shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold {% if is_paid %}text-success{% elif is_overdue %}text-danger{% else %}text-info{% endif %} text-uppercase mb-1">
+                                                Payment Status</div>
+                                            <div class="h5 mb-0 font-weight-bold {% if is_paid %}text-success{% elif is_overdue %}text-danger{% else %}text-warning{% endif %}">
+                                                {{ payment_status }}
+                                            </div>
+                                            <div class="text-xs text-muted mt-1">
+                                                {% if is_overdue %}{{ total_late|floatformat:2 }} overdue{% elif is_paid %}Up to date{% else %}Payment pending{% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas {% if is_paid %}fa-check-circle{% elif is_overdue %}fa-exclamation-triangle{% else %}fa-clock{% endif %} fa-2x {% if is_paid %}text-success{% elif is_overdue %}text-danger{% else %}text-warning{% endif %}"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Balance Due/Credit -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-left-{% if balance < 0 %}success{% elif balance > 0 %}warning{% else %}info{% endif %} shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold {% if balance < 0 %}text-success{% elif balance > 0 %}text-warning{% else %}text-info{% endif %} text-uppercase mb-1">
+                                                {% if balance < 0 %}Credit{% else %}Balance Due{% endif %}
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold {% if balance < 0 %}text-success{% elif balance > 0 %}text-warning{% else %}text-gray-800{% endif %}">
+                                                TZS {{ absolute_balance|floatformat:2 }}
+                                            </div>
+                                            {% if balance < 0 %}
+                                            <div class="text-xs text-success mt-1">
+                                                <i class="fas fa-arrow-up"></i> {{ absolute_balance|floatformat:2 }} credit
+                                            </div>
+                                            {% elif balance > 0 %}
+                                            <div class="text-xs text-warning mt-1">
+                                                <i class="fas fa-arrow-down"></i> {{ absolute_balance|floatformat:2 }} due
+                                            </div>
+                                            {% else %}
+                                            <div class="text-xs text-muted mt-1">
+                                                <i class="fas fa-check"></i> Paid in full
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas {% if balance < 0 %}fa-plus-circle{% elif balance > 0 %}fa-minus-circle{% else %}fa-check-circle{% endif %} fa-2x {% if balance < 0 %}text-success{% elif balance > 0 %}text-warning{% else %}text-success{% endif %}"></i>
+                                        <div class="col-auto">
+                                            <i class="fas {% if total_late > 0 %}fa-exclamation-triangle{% else %}fa-smile{% endif %} fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Payments</h6>
+            <a href="#" class="btn btn-sm btn-primary">View All Payments</a>
+        </div>
+        <div class="card-body">
+            {% if payments %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="paymentsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount (TZS)</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.date|date:"M d, Y" }}</td>
+                                <td>{{ payment.amount|floatformat:2 }}</td>
+                                <td>{{ payment.method|default:"N/A" }}</td>
+                                <td>
+                                    {% if payment.status == 'Paid' %}
+                                        <span class="badge bg-success" data-bs-toggle="tooltip" title="Payment completed successfully">
+                                            <i class="fas fa-check-circle me-1"></i> {{ payment.get_status_display }}
+                                        </span>
+                                    {% elif payment.status == 'Pending' %}
+                                        <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Payment is being processed">
+                                            <i class="fas fa-clock me-1"></i> {{ payment.get_status_display }}
+                                        </span>
+                                    {% elif payment.status == 'Failed' %}
+                                        <span class="badge bg-danger" data-bs-toggle="tooltip" title="Payment failed to process">
+                                            <i class="fas fa-times-circle me-1"></i> {{ payment.get_status_display }}
+                                        </span>
+                                    {% elif payment.status == 'Overdue' %}
+                                        <span class="badge bg-danger" data-bs-toggle="tooltip" title="Payment is overdue">
+                                            <i class="fas fa-exclamation-triangle me-1"></i> {{ payment.get_status_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Payment status: {{ payment.get_status_display|default:'Unknown' }}">
+                                            <i class="fas fa-question-circle me-1"></i> {{ payment.get_status_display|default:'N/A' }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'tenancy:payment_details' payment.id %}" class="btn btn-sm btn-info" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-receipt fa-3x text-gray-400 mb-3"></i>
+                    <p class="text-muted">No payment records found for this tenant.</p>
+                    <a href="{% url 'landlord:record_payment' %}?tenant_id={{ tenant.id }}" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>Record First Payment
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Page level plugins -->
+<script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+
+<!-- Page level custom scripts -->
+<script>
+    // Initialize DataTable and tooltips
+    $(document).ready(function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Initialize DataTable
+        var table = $('#paymentsTable').DataTable({
+            "order": [[0, "desc"]],
+            "pageLength": 5,
+            "lengthMenu": [5, 10, 25, 50, 100],
+            "language": {
+                "emptyTable": "No payment records found for this tenant.",
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search payments...",
+                "lengthMenu": "Show _MENU_ payments per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ payments",
+                "infoEmpty": "No payments to show",
+                "infoFiltered": "(filtered from _MAX_ total payments)",
+                "paginate": {
+                    "first": "First",
+                    "last": "Last",
+                    "next": "Next",
+                    "previous": "Previous"
+                },
+                "searchPlaceholder": "Search payments..."
+            }
+        });
+    });
+</script>
+{% endblock %}

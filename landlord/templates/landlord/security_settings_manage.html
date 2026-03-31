@@ -1,0 +1,37 @@
+{% load static %}
+<!-- Security Settings – Manage Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Security Settings - WAPANGAJI</title>
+    <link rel="stylesheet" href="{% static 'landlord/settings.css' %}">
+    <!-- Comment: Modern, responsive CSS for landlord settings -->
+</head>
+<body>
+    <main class="settings-main">
+        <h1 class="settings-title">Manage Security Settings</h1>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="post" class="settings-card">
+            {% csrf_token %}
+            <h2>Change Password</h2>
+            <label for="old_password">Old Password:</label>
+            <input type="password" name="old_password" required>
+            <label for="new_password">New Password:</label>
+            <input type="password" name="new_password" required>
+            <label for="confirm_password">Confirm New Password:</label>
+            <input type="password" name="confirm_password" required>
+            <button type="submit" name="save_password" class="btn btn-primary">Update Password</button>
+            <!-- Comment: Change password, saves to DB. -->
+        </form>
+        <!-- TODO: Add basic 2FA setup section here -->
+    </main>
+</body>
+</html>

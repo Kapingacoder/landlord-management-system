@@ -1,0 +1,270 @@
+{% extends 'landlord/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Property Documents{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-file-alt me-2"></i>Property Documents</h1>
+            <p class="text-muted mb-0">Upload and manage documents for your properties</p>
+        </div>
+        <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+            <i class="fas fa-plus me-1"></i>Upload Document
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <!-- Total Documents -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Documents
+                            </div>
+                            <div class="h2 mb-0 font-weight-bold text-gray-800">{{ total_documents }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Properties -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Properties
+                            </div>
+                            <div class="h2 mb-0 font-weight-bold text-gray-800">{{ total_properties }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Uploads -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Uploaded This Month
+                            </div>
+                            <div class="h2 mb-0 font-weight-bold text-gray-800">{{ recent_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-1"></i>All Documents
+            </h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                    <li><a class="dropdown-item" href="?filter=all">All Documents</a></li>
+                    <li><a class="dropdown-item" href="?filter=recent">Recent</a></li>
+                    <li><a class="dropdown-item" href="?filter=lease">Lease Agreements</a></li>
+                    <li><a class="dropdown-item" href="?filter=rules">House Rules</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if documents %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Type</th>
+                            <th>Property</th>
+                            <th>Uploaded</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-pdf text-danger me-2" style="font-size: 1.5rem"></i>
+                                    <div>
+                                        <div class="font-weight-bold">{{ document.title }}</div>
+                                        <small class="text-muted">{{ document.file.size|filesizeformat }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ document.document_type }}
+                                </span>
+                            </td>
+                            <td>{{ document.property.name }}</td>
+                            <td>{{ document.uploaded_at|date:"M d, Y" }}</td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ document.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ document.file.url }}" download class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal{{ document.id }}" data-bs-toggle="tooltip" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="deleteDocumentModalLabel{{ document.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteDocumentModalLabel{{ document.id }}">
+                                                    Confirm Deletion
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete <strong>{{ document.title }}</strong>? This action cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{% url 'landlord:delete_document' document.id %}" method="post" style="display: inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash me-1"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <h3>No Documents Uploaded Yet</h3>
+                <p>
+                    Start by uploading important documents like lease agreements and house rules above.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Upload Document Modal -->
+    <div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-labelledby="uploadDocumentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadDocumentModalLabel">
+                        <i class="fas fa-upload me-2"></i>Upload New Document
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="property" class="form-label">Property</label>
+                                <select name="property" id="property" class="form-select" required>
+                                    <option value="">-- Choose Property --</option>
+                                    {% for prop in properties %}
+                                    <option value="{{ prop.id }}">{{ prop.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="document_type" class="form-label">Document Type</label>
+                                <select name="document_type" id="document_type" class="form-select" required>
+                                    <option value="">-- Choose Type --</option>
+                                    <option value="Lease Agreement">Lease Agreement</option>
+                                    <option value="House Rules">House Rules</option>
+                                    <option value="Tenant Handbook">Tenant Handbook</option>
+                                    <option value="Maintenance Policy">Maintenance Policy</option>
+                                    <option value="Payment Terms">Payment Terms</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Document Title</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="e.g., Lease Agreement 2025" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="2" placeholder="Add any additional information about this document..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file" class="form-label">PDF File</label>
+                            <input class="form-control" type="file" id="file" name="file" accept=".pdf" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Only PDF files are accepted (max 10MB)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i> Upload Document
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %}

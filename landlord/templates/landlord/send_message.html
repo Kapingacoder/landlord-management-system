@@ -1,0 +1,354 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Send Message{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-paper-plane me-2"></i>Send Message</h1>
+            <p class="text-muted mb-0">Compose a new message to your tenants</p>
+        </div>
+        <a href="{% url 'landlord:messages' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Messages
+        </a>
+    </div>
+
+    <!-- Message Form Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-edit me-1"></i>Compose Message
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="message-form">
+                {% csrf_token %}
+                
+                <!-- Tenant Selection -->
+                <div class="mb-3">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="selectAllTenants" name="send_to_all">
+                        <label class="form-check-label fw-bold" for="selectAllTenants">
+                            Send to All Tenants
+                        </label>
+                    </div>
+                    
+                    <label for="tenants" class="form-label">
+                        <i class="fas fa-users me-1"></i>Select Tenants
+                        <span class="text-danger">*</span>
+                    </label>
+                    <select id="tenants" name="tenants" class="form-select" multiple>
+                        <option value="all" class="fw-bold">All Tenants</option>
+                        {% for tenancy in tenancies %}
+                            <option value="{{ tenancy.tenant.id }}">
+                                {{ tenancy.tenant.get_full_name|default:tenancy.tenant.username }} 
+                                - {{ tenancy.unit.property.name }} (Unit {{ tenancy.unit.unit_identifier }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>Select specific tenants or choose "All Tenants" from the dropdown
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div class="mb-3">
+                    <label for="subject" class="form-label">
+                        <i class="fas fa-tag me-1"></i>Subject
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" 
+                           id="subject" 
+                           name="subject" 
+                           class="form-control" 
+                           placeholder="Enter message subject"
+                           maxlength="255"
+                           required>
+                </div>
+
+                <!-- Message Body -->
+                <div class="mb-4">
+                    <label for="body" class="form-label">
+                        <i class="fas fa-edit me-1"></i>Message
+                        <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="body" 
+                              name="body" 
+                              class="form-control" 
+                              rows="8" 
+                              placeholder="Type your message here..."
+                              maxlength="2000"
+                              required></textarea>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="char-counter">2000 characters remaining</span>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Send Message
+                        </button>
+                        <a href="{% url 'landlord:messages' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>All messages are logged for record keeping
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Guidelines Card -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-lightbulb me-1"></i>Message Guidelines
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 text-success me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Be Clear & Concise</h6>
+                            <p class="text-muted small mb-0">Get straight to the point and be specific about what you're communicating.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 text-success me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Provide Context</h6>
+                            <p class="text-muted small mb-0">Include relevant details about maintenance, payments, or other important information.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 text-success me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Set Expectations</h6>
+                            <p class="text-muted small mb-0">Be clear about any required actions or next steps.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0 text-success me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Be Professional</h6>
+                            <p class="text-muted small mb-0">Maintain a respectful and professional tone in all communications.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for character counter -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus on the subject field
+    const subjectField = document.getElementById('subject');
+    const bodyField = document.getElementById('body');
+    const maxLength = 2000;
+    
+    if (subjectField) {
+        subjectField.focus();
+    }
+
+    // Character counter for message body
+    if (bodyField) {
+        // Update character counter on input
+        bodyField.addEventListener('input', function() {
+            const remaining = maxLength - this.value.length;
+            const counter = document.getElementById('char-counter');
+            
+            if (counter) {
+                counter.textContent = `${remaining} characters remaining`;
+                counter.className = remaining < 100 ? 'text-danger' : 'text-muted';
+            }
+            
+            // Add warning class to textarea when approaching limit
+            if (remaining < 100) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+            
+            // Auto-resize textarea
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+
+    // Form validation
+    const form = document.querySelector('.message-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const tenants = document.getElementById('tenants');
+            const subject = document.getElementById('subject').value.trim();
+            const body = document.getElementById('body').value.trim();
+            
+            if (!tenants || tenants.selectedOptions.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one tenant to message.');
+                return false;
+            }
+            
+            if (!subject) {
+                e.preventDefault();
+                alert('Please enter a subject for your message.');
+                return false;
+            }
+            
+            if (!body) {
+                e.preventDefault();
+                alert('Please enter a message.');
+                return false;
+            }
+        });
+    }
+    
+    // Initialize select2 for better multi-select experience
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        const tenantsSelect = $('#tenants').select2({
+            placeholder: 'Select tenants or choose "All Tenants"',
+            width: '100%',
+            theme: 'bootstrap-5',
+            templateResult: formatOption
+        });
+
+        function formatOption(option) {
+            if (!option.id) return option.text;
+            if (option.id === 'all') {
+                return $('<span class="fw-bold">' + option.text + '</span>');
+            }
+            return option.text;
+        }
+
+        // Handle "All Tenants" selection
+        tenantsSelect.on('select2:select', function(e) {
+            const data = e.params.data;
+            if (data.id === 'all') {
+                // If "All Tenants" is selected, unselect all other options
+                tenantsSelect.val(['all']).trigger('change');
+            } else {
+                // If any other option is selected, unselect "All Tenants"
+                const values = tenantsSelect.val() || [];
+                const allIndex = values.indexOf('all');
+                if (allIndex !== -1) {
+                    values.splice(allIndex, 1);
+                    tenantsSelect.val(values).trigger('change');
+                }
+            }
+        });
+        
+        // Update the hidden checkbox when selection changes
+        tenantsSelect.on('change', function() {
+            const values = $(this).val() || [];
+            const allSelected = values.includes('all');
+            $('#selectAllTenants').prop('checked', allSelected);
+            
+            // If "All Tenants" is selected, disable the select
+            if (allSelected) {
+                tenantsSelect.prop('disabled', true);
+            } else {
+                tenantsSelect.prop('disabled', false);
+            }
+        });
+        
+        // Handle "All Tenants" checkbox
+        const selectAllCheckbox = document.getElementById('selectAllTenants');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    tenantsSelect.val(['all']).trigger('change');
+                } else {
+                    tenantsSelect.val(null).trigger('change');
+                }
+            });
+        }
+    }
+});
+</script>
+
+<!-- Add Select2 CSS and JS if not already included -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+/* Custom styles for the message form */
+.message-form .form-label {
+    font-weight: 500;
+    color: #4e73df;
+}
+
+.message-form .form-control:focus, 
+.message-form .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+}
+
+.message-form .btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.message-form .btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .message-form .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .text-end {
+        text-align: left !important;
+    }
+}
+</style>
+{% endblock %}

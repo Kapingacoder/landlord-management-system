@@ -1,0 +1,482 @@
+{% extends 'landlord/landlord_base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block sidebar_styles %}
+.main-content {
+    margin-left: 0;
+    padding: 2rem;
+}
+.header {
+    margin-left: 0;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-envelope me-2"></i>Messages</h1>
+            <p class="text-muted mb-0">Communicate with your tenants</p>
+        </div>
+        <a href="{% url 'landlord:send_message' %}" class="btn btn-outline-primary">
+            <i class="fas fa-paper-plane me-1"></i>New Message
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Unread Messages
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ unread_messages|default:'0' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-envelope fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Messages
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_messages|default:'0' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-inbox fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Active Conversations
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_conversations|default:'0' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Replies
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_replies|default:'0' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-reply fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-envelope me-1"></i>Recent Messages
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if messages_list %}
+                <div class="timeline">
+                    {% for message in messages_list %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-{% if not message.read_at %}primary{% else %}secondary{% endif %}">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'landlord:message_detail' message.pk %}" class="text-decoration-none">
+                                            {{ message.sender.get_full_name|default:message.sender.username }}
+                                        </a>
+                                    </h6>
+                                    <p class="mb-1 text-muted">{{ message.subject }}</p>
+                                    <div class="message-preview mb-2">
+                                        {{ message.body|truncatewords:20 }}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ message.sent_at|timesince }} ago
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-{% if not message.read_at %}primary{% else %}secondary{% endif %}">
+                                            {% if not message.read_at %}Unread{% else %}Read{% endif %}
+                                        </span>
+                                        <a href="{% url 'landlord:message_detail' message.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-reply me-1"></i> Reply
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No messages yet</h5>
+                    <p class="text-muted">When you receive messages, they'll appear here.</p>
+                    <a href="{% url 'landlord:send_message' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-paper-plane me-1"></i>Send a Message
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+    list-style: none;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 2rem;
+    padding-left: 2rem;
+    border-left: 2px solid #e9ecef;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.timeline-content {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.timeline-item:not(:last-child) .timeline-content {
+    margin-bottom: 1.5rem;
+}
+
+.bg-primary {
+    background-color: #4e73df !important;
+}
+
+.bg-secondary {
+    background-color: #858796 !important;
+}
+
+.bg-success {
+    background-color: #1cc88a !important;
+}
+
+.bg-info {
+    background-color: #36b9cc !important;
+}
+
+.bg-warning {
+    background-color: #f6c23e !important;
+}
+
+.bg-danger {
+    background-color: #e74a3b !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .timeline {
+        padding-left: 1.5rem;
+    }
+    
+    .timeline-item {
+        padding-left: 1.5rem;
+    }
+    
+    .timeline-marker {
+        left: -1.25rem;
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.8rem;
+    }
+    
+    .timeline-content {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>WAPANGAJI Landlord</span>
+            </div>
+            <nav class="nav">
+                <a href="{% url 'landlord:dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'landlord:messages' %}" class="nav-link active">Messages</a>
+                <a href="/" class="nav-link">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <div class="messages-hero">
+            <h1><i class="fas fa-envelope"></i> Messages</h1>
+            <p>Communicate with your tenants effectively</p>
+        </div>
+
+        <div class="messages-container">
+            <!-- Messages Sidebar -->
+            <div class="messages-sidebar">
+                <div class="sidebar-header">
+                    <h3>Inbox</h3>
+                    <button class="compose-btn" onclick="showComposeForm()">
+                        <i class="fas fa-pen"></i> Compose
+                    </button>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message-preview {% if not message.read_at %}unread{% endif %}" onclick="viewMessage({{ message.pk }})">
+                            <div class="preview-sender">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+                            {% with tenancy=message.sender.tenancies.first %}
+                                {% if tenancy %}
+                                    <div class="preview-property">{{ tenancy.unit.property.name }} - Unit {{ tenancy.unit.unit_identifier }}</div>
+                                {% endif %}
+                            {% endwith %}
+                            <div class="preview-subject">{{ message.subject }}</div>
+                            <div class="preview-body">{{ message.body|truncatewords:15 }}</div>
+                            <div class="preview-time">{{ message.sent_at|date:"M d, H:i" }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No Messages Yet</h3>
+                        <p>Your inbox is empty. Start a conversation with your tenants!</p>
+                        <button class="compose-btn" onclick="showComposeForm()">
+                            <i class="fas fa-plus"></i> Send First Message
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Compose Section -->
+            <div class="compose-section" id="composeSection">
+                <div class="compose-header">
+                    <h2><i class="fas fa-edit"></i> Compose Message</h2>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-card">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ messages|length }}</span>
+                            <span class="stat-label">Total Messages</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ messages|length|add:0 }}</span>
+                            <span class="stat-label">Unread</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ tenancies|length }}</span>
+                            <span class="stat-label">Active Tenants</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'landlord:send_message' %}" class="compose-form">
+                    {% csrf_token %}
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> Select Tenant *
+                            </label>
+                            <select name="tenant" class="form-select" required>
+                                <option value="">-- Choose a tenant --</option>
+                                {% for tenancy in tenancies %}
+                                    <option value="{{ tenancy.tenant.id }}">
+                                        {{ tenancy.tenant.get_full_name|default:tenancy.tenant.username }}
+                                        - {{ tenancy.unit.property.name }} (Unit {{ tenancy.unit.unit_identifier }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Subject *
+                            </label>
+                            <input type="text" name="subject" class="form-input" placeholder="Message subject" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-edit"></i> Message *
+                        </label>
+                        <textarea name="body" class="form-textarea" placeholder="Type your message here... Be clear and professional in your communication with your tenant." required></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-send">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                        <a href="{% url 'landlord:dashboard' %}" class="btn-cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Message Guidelines -->
+                <div class="guidelines-section" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 1rem; border-left: 4px solid #667eea;">
+                    <h4 style="color: #1e293b; margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Communication Tips</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: #10b981;"></i>
+                            <span>Be clear and professional in your communication</span>
+                        </li>
+                        <li style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: #10b981;"></i>
+                            <span>Include specific details about maintenance or rent issues</span>
+                        </li>
+                        <li style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: #10b981;"></i>
+                            <span>Set clear expectations for follow-up actions</span>
+                        </li>
+                        <li style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: #10b981;"></i>
+                            <span>Keep messages respectful and constructive</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 WAPANGAJI. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function showComposeForm() {
+            const composeSection = document.getElementById('composeSection');
+            if (composeSection) {
+                composeSection.scrollIntoView({ behavior: 'smooth' });
+                const tenantSelect = document.querySelector('select[name="tenant"]');
+                if (tenantSelect) tenantSelect.focus();
+            }
+        }
+
+        function viewMessage(messageId) {
+            const detailUrl = '{% url "landlord:message_detail" 0 %}'.replace('0', messageId);
+            window.location.href = detailUrl;
+        }
+
+        // Auto-resize textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize textarea auto-resize
+            const textarea = document.querySelector('.form-textarea');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            }
+
+            // Form validation
+            const form = document.querySelector('.compose-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const tenant = form.querySelector('select[name="tenant"]').value;
+                    const subject = form.querySelector('input[name="subject"]').value.trim();
+                    const body = form.querySelector('textarea[name="body"]').value.trim();
+
+                    if (!tenant) {
+                        e.preventDefault();
+                        alert('Please select a tenant to message.');
+                        const tenantSelect = form.querySelector('select[name="tenant"]');
+                        if (tenantSelect) tenantSelect.focus();
+                        return false;
+                    }
+
+                    if (!subject) {
+                        e.preventDefault();
+                        alert('Please enter a subject for your message.');
+                        const subjectInput = form.querySelector('input[name="subject"]');
+                        if (subjectInput) subjectInput.focus();
+                        return false;
+                    }
+
+                    if (!body) {
+                        e.preventDefault();
+                        alert('Please enter your message.');
+                        const bodyTextarea = form.querySelector('textarea[name="body"]');
+                        if (bodyTextarea) bodyTextarea.focus();
+                        return false;
+                    }
+                });
+            }
+
+            // Trigger initial resize for any existing content
+            if (textarea) {
+                textarea.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+</body>
+</html>
